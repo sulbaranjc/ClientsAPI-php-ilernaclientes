@@ -2,15 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;  // ✅ IMPORTANTE: Se debe importar el modelo Client
+use App\Models\Client;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Info(
+ *      title="Clients API",
+ *      version="1.0",
+ *      description="Documentación de la API de Clientes con Swagger"
+ * )
+ */
 class ClientController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/api/clients",
+     *     summary="Obtener todos los clientes",
+     *     tags={"Clientes"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de clientes"
+     *     )
+     * )
      */
     public function index()
     {
@@ -18,10 +31,61 @@ class ClientController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/api/clients/{id}",
+     *     summary="Obtener un cliente por ID",
+     *     tags={"Clientes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID del cliente",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Datos del cliente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     )
+     * )
+     */
+    public function show($id)
+    {
+        $client = Client::find($id);
+        if (!$client) {
+            return response()->json(['message' => 'Cliente no encontrado'], 404);
+        }
+        return response()->json($client, 200);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/clients",
+     *     summary="Crear un nuevo cliente",
+     *     tags={"Clientes"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"first_name", "last_name", "phone_number", "email", "address"},
+     *             @OA\Property(property="first_name", type="string"),
+     *             @OA\Property(property="last_name", type="string"),
+     *             @OA\Property(property="phone_number", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="address", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Cliente creado exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación"
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -38,26 +102,36 @@ class ClientController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        $client = Client::find($id);
-        if (!$client) {
-            return response()->json(['message' => 'Cliente no encontrado'], 404);
-        }
-        return response()->json($client, 200);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @OA\Put(
+     *     path="/api/clients/{id}",
+     *     summary="Actualizar un cliente",
+     *     tags={"Clientes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID del cliente a actualizar",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="first_name", type="string"),
+     *             @OA\Property(property="last_name", type="string"),
+     *             @OA\Property(property="phone_number", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="address", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cliente actualizado"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     )
+     * )
      */
     public function update(Request $request, $id)
     {
@@ -66,23 +140,31 @@ class ClientController extends Controller
             return response()->json(['message' => 'Cliente no encontrado'], 404);
         }
 
-        $request->validate([
-            'first_name' => 'sometimes|string|max:255',
-            'last_name' => 'sometimes|string|max:255',
-            'phone_number' => 'sometimes|string|max:20',
-            'email' => 'sometimes|email|unique:clients,email,' . $id,
-            'address' => 'sometimes|string|max:255',
-        ]);
-
         $client->update($request->all());
         return response()->json($client, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @OA\Delete(
+     *     path="/api/clients/{id}",
+     *     summary="Eliminar un cliente",
+     *     tags={"Clientes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID del cliente a eliminar",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cliente eliminado"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Cliente no encontrado"
+     *     )
+     * )
      */
     public function destroy($id)
     {
